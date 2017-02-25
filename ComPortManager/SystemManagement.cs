@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Management;
+using System.Windows.Forms;
+using Microsoft.Win32;
 
 namespace ComPortManager
 {
@@ -15,5 +17,27 @@ namespace ComPortManager
             }
             return ports;
         }
+
+        public static bool IsEnabledStartup(string name)
+        {
+            return GetRunKey().GetValue(name) != null;
+        }
+
+
+        public static void EnableStartup(string name)
+        {
+            GetRunKey().SetValue(name, Application.ExecutablePath);
+        }
+
+        public static void DisableStartup(string name)
+        {
+            GetRunKey().DeleteValue(name, false);
+
+        }
+        private static RegistryKey GetRunKey()
+        {
+            return Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+        }
+
     }
 }

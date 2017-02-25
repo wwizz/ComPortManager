@@ -31,7 +31,7 @@ namespace ComPortManager
                 BalloonTipTitle = AppTitle
             };
 
-            var timer = new Timer {Interval = 5000};
+            var timer = new Timer { Interval = 5000 };
             timer.Tick += (sender, args) => { _comPortMonitor.Update(); };
             timer.Start();
 
@@ -51,6 +51,29 @@ namespace ComPortManager
             _trayMenu.MenuItems.Add("Exit", OnExit);
         }
 
+        private void AddMenuItemStartup()
+        {
+            var item = new MenuItem
+            {
+                Text = "Run " + AppTitle + " on startup",
+                Checked = SystemManagement.IsEnabledStartup(AppTitle)
+            };
+
+            item.Click += (sender, args) => {
+                if (item.Checked)
+                {
+                    SystemManagement.DisableStartup(AppTitle);
+                }
+                else
+                {
+                    SystemManagement.EnableStartup(AppTitle);
+                }
+                item.Checked = SystemManagement.IsEnabledStartup(AppTitle);
+
+            };
+            _trayMenu.MenuItems.Add(item);
+        }
+
 
         private void ShowBalloon(string message)
         {
@@ -58,23 +81,33 @@ namespace ComPortManager
             _trayIcon.ShowBalloonTip(5000);
         }
 
-
         private void UpdateTrayMenu()
         {
             _trayMenu.MenuItems.Clear();
+            AddMenuItemAvailableComPorts();
+            AddMenuItemSeperator();
+            AddMenuItemStartup();
+            AddMenuItemExit();
+        }
+
+        private void AddMenuItemSeperator()
+        {
+            _trayMenu.MenuItems.Add("-");
+        }
+
+        private void AddMenuItemAvailableComPorts()
+        {
+            _trayMenu.MenuItems.Add("Available COM ports:");
             foreach (var port in _comPortMonitor.CurrentPortList)
             {
-                _trayMenu.MenuItems.Add(port);
+                _trayMenu.MenuItems.Add(new MenuItem {Text = port});
             }
-            _trayMenu.MenuItems.Add("---");
-            AddMenuItemExit();
         }
 
         protected override void OnLoad(EventArgs e)
         {
-            Visible = false; // Hide form window.
-            ShowInTaskbar = false; // Remove from taskbar.
-
+            Visible = false; 
+            ShowInTaskbar = false;
             base.OnLoad(e);
         }
 
@@ -87,8 +120,7 @@ namespace ComPortManager
         {
             if (isDisposing)
             {
-                // Release the icon resource.
-                _trayIcon.Dispose();
+               _trayIcon.Dispose();
             }
 
             base.Dispose(isDisposing);
