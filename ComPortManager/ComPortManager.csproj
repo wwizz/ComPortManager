@@ -57,6 +57,9 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="SystemManagement.cs" />
+    <Compile Include="TrayMenu.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

@@ -14,66 +14,56 @@ namespace ComPortManager
             Application.Run(new TrayApp());
         }
 
-        private const string AppTitle = "ComPortManager";
-        private readonly NotifyIcon _trayIcon;
-        private readonly ContextMenu _trayMenu;
-        private readonly ComPortMonitor _comPortMonitor;
+        private NotifyIcon _trayIcon;
+        private TrayMenu _trayMenu;
+        private ComPortMonitor _comPortMonitor;
 
         public TrayApp()
         {
             InitializeComponent();
-            _trayMenu = new ContextMenu();
+
+            CreateComPortMonitor();
+            CreateTrayMenu();
+            CreateTrayIcon();
+            CreateTimer();
+
+            _trayMenu.Update();
+        }
+
+        private void CreateTrayMenu()
+        {
+            _trayMenu = new TrayMenu {ComPortMonitor = _comPortMonitor};
+        }
+
+        private void CreateTrayIcon()
+        {
             _trayIcon = new NotifyIcon
             {
-                Text = AppTitle,
+                Text = Application.ProductName,
                 Icon = Icon,
                 ContextMenu = _trayMenu,
                 Visible = true,
-                BalloonTipTitle = AppTitle
+                BalloonTipTitle = Application.ProductName
             };
+        }
 
-            var timer = new Timer { Interval = 5000 };
-            timer.Tick += (sender, args) => { _comPortMonitor.Update(); };
-            timer.Start();
-
+        private void CreateComPortMonitor()
+        {
             _comPortMonitor = new ComPortMonitor();
             _comPortMonitor.Change += (sender, s) => { OnComPortMonitorChange(s); };
-            UpdateTrayMenu();
+        }
 
+        private void CreateTimer()
+        {
+            var timer = new Timer {Interval = 5000};
+            timer.Tick += (sender, args) => { _comPortMonitor.Update(); };
+            timer.Start();
         }
 
         private void OnComPortMonitorChange(string e)
         {
             ShowBalloon(e);
-            UpdateTrayMenu();
-        }
-
-        private void AddMenuItemExit()
-        {
-            _trayMenu.MenuItems.Add("Exit", OnExit);
-        }
-
-        private void AddMenuItemStartup()
-        {
-            var item = new MenuItem
-            {
-                Text = "Run " + AppTitle + " on startup",
-                Checked = SystemManagement.IsEnabledStartup(AppTitle)
-            };
-
-            item.Click += (sender, args) => {
-                if (item.Checked)
-                {
-                    SystemManagement.DisableStartup(AppTitle);
-                }
-                else
-                {
-                    SystemManagement.EnableStartup(AppTitle);
-                }
-                item.Checked = SystemManagement.IsEnabledStartup(AppTitle);
-
-            };
-            _trayMenu.MenuItems.Add(item);
+            _trayMenu.Update();
         }
 
 
@@ -82,30 +72,7 @@ namespace ComPortManager
             _trayIcon.BalloonTipText = message;
             _trayIcon.ShowBalloonTip(5000);
         }
-
-        private void UpdateTrayMenu()
-        {
-            _trayMenu.MenuItems.Clear();
-            AddMenuItemAvailableComPorts();
-            AddMenuItemSeperator();
-            AddMenuItemStartup();
-            AddMenuItemExit();
-        }
-
-        private void AddMenuItemSeperator()
-        {
-            _trayMenu.MenuItems.Add("-");
-        }
-
-        private void AddMenuItemAvailableComPorts()
-        {
-            _trayMenu.MenuItems.Add("Available COM ports:");
-            foreach (var port in _comPortMonitor.CurrentPortList)
-            {
-                _trayMenu.MenuItems.Add(new MenuItem {Text = port});
-            }
-        }
-
+       
         protected override void OnLoad(EventArgs e)
         {
             Visible = false; 
@@ -113,11 +80,7 @@ namespace ComPortManager
             base.OnLoad(e);
         }
 
-        private void OnExit(object sender, EventArgs e)
-        {
-            Application.Exit();
-        }
-
+       
         protected override void Dispose(bool isDisposing)
         {
             if (isDisposing)
