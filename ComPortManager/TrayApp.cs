@@ -21,11 +21,12 @@ namespace ComPortManager
 
         public TrayApp()
         {
+            InitializeComponent();
             _trayMenu = new ContextMenu();
             _trayIcon = new NotifyIcon
             {
                 Text = AppTitle,
-                Icon = new Icon(SystemIcons.Shield, 40, 40),
+                Icon = Icon,
                 ContextMenu = _trayMenu,
                 Visible = true,
                 BalloonTipTitle = AppTitle
@@ -38,6 +39,7 @@ namespace ComPortManager
             _comPortMonitor = new ComPortMonitor();
             _comPortMonitor.Change += (sender, s) => { OnComPortMonitorChange(s); };
             UpdateTrayMenu();
+
         }
 
         private void OnComPortMonitorChange(string e)
@@ -124,6 +126,20 @@ namespace ComPortManager
             }
 
             base.Dispose(isDisposing);
+        }
+
+        private void InitializeComponent()
+        {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TrayApp));
+            this.SuspendLayout();
+            // 
+            // TrayApp
+            // 
+            this.ClientSize = new System.Drawing.Size(274, 229);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Name = "TrayApp";
+            this.ResumeLayout(false);
+
         }
     }
 }
